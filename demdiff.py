@@ -19,10 +19,14 @@ arg_parser = argparse.ArgumentParser(
     description='Calculate raster difference between two raster datasets.',
     epilog='Generates a raster file determined as the "new" raster minus the "old" raster. The output raster will take its data type, nodata value, spatial extent, resolution and spatial reference system from the "new" dataset. Prior to taking the difference, the "old" dataset is resampled using the algorithm provided in `resample_alg` to match that of the "new" dataset.'
 )
-arg_parser.add_argument('old_raster', type=str, help='path to old raster input file')
-arg_parser.add_argument('new_raster', type=str, help='path to new raster input file')
-arg_parser.add_argument('output_raster', type=str, help='path to output (difference) raster file')
-arg_parser.add_argument('--resample_alg', type=str, choices=RESAMPLE_ALGS.keys(), default='bilinear', help="resampling algorithm to use on old raster (default: 'bilinear')")
+arg_parser.add_argument('old_raster', type=str,
+                        help='path to old raster input file')
+arg_parser.add_argument('new_raster', type=str,
+                        help='path to new raster input file')
+arg_parser.add_argument('output_raster', type=str,
+                        help='path to output (difference) raster file')
+arg_parser.add_argument('--resample_alg', type=str, choices=RESAMPLE_ALGS.keys(),
+                        default='bilinear', help="resampling algorithm to use on old raster (default: 'bilinear')")
 
 input_args = arg_parser.parse_args()
 
@@ -58,8 +62,8 @@ new_nodata_value = new_band.GetNoDataValue()
 
 old_warp_options = gdal.WarpOptions(
     format="MEM",
-    outputBounds=[x_min,y_min,x_max,y_max],
-    width=new_num_cols, # force raster dimensions to match those of the "input" window
+    outputBounds=[x_min, y_min, x_max, y_max],
+    width=new_num_cols,  # force raster dimensions to match those of the "input" window
     height=new_num_rows,
     workingType=new_datatype,
     outputType=new_datatype,
@@ -82,14 +86,15 @@ old_array = old_window_band.ReadAsArray()
 old_array[old_array == old_nodata_value] = np.nan
 
 output_array = new_array - old_array
-output_array[~np.isfinite(output_array)] = new_nodata_value # use NODATA value from new dataset
+# use NODATA value from new dataset
+output_array[~np.isfinite(output_array)] = new_nodata_value
 
 output_driver = gdal.GetDriverByName("GTiff")
 output_datasrc = output_driver.Create(
     output_raster_filename,
     new_num_cols,
     new_num_rows,
-    1, # number of bands
+    1,  # number of bands
     new_datatype
 )
 output_datasrc.SetProjection(new_srs)
