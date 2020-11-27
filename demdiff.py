@@ -6,27 +6,33 @@ gdal.UseExceptions()
 
 # Same choices as for gdal_translate (TODO: use those for gdalwarp?)
 RESAMPLE_ALGS = {
-    'nearest': gdal.GRA_NearestNeighbour,
-    'bilinear': gdal.GRA_Bilinear,
-    'cubic': gdal.GRA_Cubic,
-    'cubicspline': gdal.GRA_CubicSpline,
-    'lanczos': gdal.GRA_Lanczos,
-    'average': gdal.GRA_Average,
-    'mode': gdal.GRA_Mode
+    "nearest": gdal.GRA_NearestNeighbour,
+    "bilinear": gdal.GRA_Bilinear,
+    "cubic": gdal.GRA_Cubic,
+    "cubicspline": gdal.GRA_CubicSpline,
+    "lanczos": gdal.GRA_Lanczos,
+    "average": gdal.GRA_Average,
+    "mode": gdal.GRA_Mode,
 }
 
 arg_parser = argparse.ArgumentParser(
-    description='Calculate raster difference between two raster datasets.',
-    epilog='Generates a GeoTIFF raster file determined as the "new" raster minus the "old" raster. The output raster will take its data type, nodata value, spatial extent, resolution and spatial reference system from the "new" dataset. Prior to taking the difference, the "old" dataset is resampled using the algorithm provided in `resample_alg` to match that of the "new" dataset.'
+    description="Calculate raster difference between two raster datasets.",
+    epilog='Generates a GeoTIFF raster file determined as the "new" raster minus the "old" raster. The output raster will take its data type, nodata value, spatial extent, resolution and spatial reference system from the "new" dataset. Prior to taking the difference, the "old" dataset is resampled using the algorithm provided in `resample_alg` to match that of the "new" dataset.',
 )
-arg_parser.add_argument('old_raster', type=str,
-                        help='path to old raster input file')
-arg_parser.add_argument('new_raster', type=str,
-                        help='path to new raster input file')
-arg_parser.add_argument('output_raster', type=str,
-                        help='path to output (difference) raster file (GeoTIFF format)')
-arg_parser.add_argument('--resample_alg', type=str, choices=RESAMPLE_ALGS.keys(),
-                        default='bilinear', help="resampling algorithm to use on old raster (default: 'bilinear')")
+arg_parser.add_argument("old_raster", type=str, help="path to old raster input file")
+arg_parser.add_argument("new_raster", type=str, help="path to new raster input file")
+arg_parser.add_argument(
+    "output_raster",
+    type=str,
+    help="path to output (difference) raster file (GeoTIFF format)",
+)
+arg_parser.add_argument(
+    "--resample_alg",
+    type=str,
+    choices=RESAMPLE_ALGS.keys(),
+    default="bilinear",
+    help="resampling algorithm to use on old raster (default: 'bilinear')",
+)
 
 input_args = arg_parser.parse_args()
 
@@ -49,9 +55,9 @@ if new_geotransform[2] != 0.0 or new_geotransform[4] != 0.0:
 
 # obtain extent from input dataset
 new_x_1 = new_geotransform[0]
-new_x_2 = new_geotransform[0] + new_geotransform[1]*new_num_cols
+new_x_2 = new_geotransform[0] + new_geotransform[1] * new_num_cols
 new_y_1 = new_geotransform[3]
-new_y_2 = new_geotransform[3] + new_geotransform[5]*new_num_rows
+new_y_2 = new_geotransform[3] + new_geotransform[5] * new_num_rows
 
 x_min = min(new_x_1, new_x_2)
 x_max = max(new_x_1, new_x_2)
@@ -70,10 +76,10 @@ old_warp_options = gdal.WarpOptions(
     workingType=new_datatype,
     outputType=new_datatype,
     dstSRS=new_srs,
-    resampleAlg=resample_alg
+    resampleAlg=resample_alg,
 )
 
-old_window = gdal.Warp('', old_datasrc, options=old_warp_options)
+old_window = gdal.Warp("", old_datasrc, options=old_warp_options)
 old_window_band = old_window.GetRasterBand(1)
 
 old_window_num_cols = old_window.RasterXSize
@@ -97,7 +103,7 @@ output_datasrc = output_driver.Create(
     new_num_cols,
     new_num_rows,
     1,  # number of bands
-    new_datatype
+    new_datatype,
 )
 output_datasrc.SetProjection(new_srs)
 output_datasrc.SetGeoTransform(new_geotransform)
