@@ -17,14 +17,14 @@ RESAMPLE_ALGS = {
 
 arg_parser = argparse.ArgumentParser(
     description='Calculate raster difference between two raster datasets.',
-    epilog='Generates a raster file determined as the "new" raster minus the "old" raster. The output raster will take its data type, nodata value, spatial extent, resolution and spatial reference system from the "new" dataset. Prior to taking the difference, the "old" dataset is resampled using the algorithm provided in `resample_alg` to match that of the "new" dataset.'
+    epilog='Generates a GeoTIFF raster file determined as the "new" raster minus the "old" raster. The output raster will take its data type, nodata value, spatial extent, resolution and spatial reference system from the "new" dataset. Prior to taking the difference, the "old" dataset is resampled using the algorithm provided in `resample_alg` to match that of the "new" dataset.'
 )
 arg_parser.add_argument('old_raster', type=str,
                         help='path to old raster input file')
 arg_parser.add_argument('new_raster', type=str,
                         help='path to new raster input file')
 arg_parser.add_argument('output_raster', type=str,
-                        help='path to output (difference) raster file')
+                        help='path to output (difference) raster file (GeoTIFF format)')
 arg_parser.add_argument('--resample_alg', type=str, choices=RESAMPLE_ALGS.keys(),
                         default='bilinear', help="resampling algorithm to use on old raster (default: 'bilinear')")
 
@@ -44,6 +44,9 @@ new_geotransform = new_datasrc.GetGeoTransform()
 new_num_cols = new_datasrc.RasterXSize
 new_num_rows = new_datasrc.RasterYSize
 
+if new_geotransform[2] != 0.0 or new_geotransform[4] != 0.0:
+    raise ValueError("Rotation in geotransform is not supported")
+
 # obtain extent from input dataset
 new_x_1 = new_geotransform[0]
 new_x_2 = new_geotransform[0] + new_geotransform[1]*new_num_cols
@@ -55,7 +58,6 @@ x_max = max(new_x_1, new_x_2)
 y_min = min(new_y_1, new_y_2)
 y_max = max(new_y_1, new_y_2)
 
-new_geotransform = new_datasrc.GetGeoTransform()
 new_band = new_datasrc.GetRasterBand(1)
 new_datatype = new_band.DataType
 new_nodata_value = new_band.GetNoDataValue()
@@ -79,14 +81,14 @@ old_window_num_rows = old_window.RasterYSize
 old_nodata_value = old_window_band.GetNoDataValue()
 
 # read new and old rasters as NumPy arrays, converting the NODATA values to NaN
-new_array = new_band.ReadAsArray()
-new_array[new_array == new_nodata_value] = np.nan
-
 old_array = old_window_band.ReadAsArray()
 old_array[old_array == old_nodata_value] = np.nan
 
+new_array = new_band.ReadAsArray()
+new_array[new_array == new_nodata_value] = np.nan
+
+# compute difference and use NODATA value from new dataset
 output_array = new_array - old_array
-# use NODATA value from new dataset
 output_array[~np.isfinite(output_array)] = new_nodata_value
 
 output_driver = gdal.GetDriverByName("GTiff")
