@@ -17,7 +17,7 @@ RESAMPLE_ALGS = {
 
 arg_parser = argparse.ArgumentParser(
     description="Calculate raster difference between two raster datasets.",
-    epilog='Generates a GeoTIFF raster file determined as the "new" raster minus the "old" raster. The output raster will take its data type, nodata value, spatial extent, resolution and spatial reference system from the "new" dataset. Prior to taking the difference, the "old" dataset is resampled using the algorithm provided in `resample_alg` to match that of the "new" dataset.',
+    epilog='Generates a GeoTIFF raster file determined as the "new" raster minus the "old" raster. The output raster will take its data type, nodata value, spatial extent, resolution and spatial reference system from the "new" dataset. Prior to taking the difference, the "old" dataset is resampled using the algorithm provided with `--resample-alg` to match that of the "new" dataset.',
 )
 arg_parser.add_argument("old_raster", type=str, help="path to old raster input file (any GDAL format)")
 arg_parser.add_argument("new_raster", type=str, help="path to new raster input file (any GDAL format)")
@@ -27,7 +27,7 @@ arg_parser.add_argument(
     help="path to output (difference) raster file (GeoTIFF format)",
 )
 arg_parser.add_argument(
-    "--resample_alg",
+    "--resample-alg",
     type=str,
     choices=RESAMPLE_ALGS.keys(),
     default="bilinear",
