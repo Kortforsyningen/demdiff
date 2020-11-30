@@ -27,8 +27,12 @@ arg_parser = argparse.ArgumentParser(
     description="Calculate raster difference between two raster datasets.",
     epilog='Generates a GeoTIFF raster file determined as the "new" raster minus the "old" raster. The output raster will take its data type, nodata value, spatial extent, resolution and spatial reference system from the "new" dataset. Prior to taking the difference, the "old" dataset is resampled using the algorithm provided with `--resample-alg` to match that of the "new" dataset.',
 )
-arg_parser.add_argument("old_raster", type=str, help="path to old raster input file (any GDAL format)")
-arg_parser.add_argument("new_raster", type=str, help="path to new raster input file (any GDAL format)")
+arg_parser.add_argument(
+    "old_raster", type=str, help="path to old raster input file (any GDAL format)"
+)
+arg_parser.add_argument(
+    "new_raster", type=str, help="path to new raster input file (any GDAL format)"
+)
 arg_parser.add_argument(
     "output_raster",
     type=str,
@@ -115,7 +119,7 @@ output_array[~np.isfinite(output_array)] = new_nodata_value
 output_options = [
     "TILED=YES",
     "COMPRESS={}".format(compression),
-    "PREDICTOR=3", # appears to give best results on real-life data
+    "PREDICTOR=3",  # appears to give best results on real-life data
 ]
 
 output_driver = gdal.GetDriverByName("GTiff")
