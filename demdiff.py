@@ -49,8 +49,8 @@ arg_parser.add_argument(
     "--compress",
     type=str,
     choices=COMPRESSIONS,
-    default="NONE",
-    help="TIFF compression to use for output (default: 'NONE')",
+    default="DEFLATE",
+    help="TIFF compression to use for output (default: 'DEFLATE')",
 )
 
 input_args = arg_parser.parse_args()
