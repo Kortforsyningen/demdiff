@@ -15,6 +15,14 @@ RESAMPLE_ALGS = {
     "mode": gdal.GRA_Mode,
 }
 
+# Several of GDAL's available options are not appropriate for floating-point output
+COMPRESSIONS = [
+    "LZW",
+    "DEFLATE",
+    "ZSTD",
+    "NONE",
+]
+
 arg_parser = argparse.ArgumentParser(
     description="Calculate raster difference between two raster datasets.",
     epilog='Generates a GeoTIFF raster file determined as the "new" raster minus the "old" raster. The output raster will take its data type, nodata value, spatial extent, resolution and spatial reference system from the "new" dataset. Prior to taking the difference, the "old" dataset is resampled using the algorithm provided with `--resample-alg` to match that of the "new" dataset.',
@@ -33,14 +41,21 @@ arg_parser.add_argument(
     default="bilinear",
     help="resampling algorithm to use on old raster (default: 'bilinear')",
 )
+arg_parser.add_argument(
+    "--compress",
+    type=str,
+    choices=COMPRESSIONS,
+    default="NONE",
+    help="TIFF compression to use for output (default: 'NONE')",
+)
 
 input_args = arg_parser.parse_args()
 
 old_raster_filename = input_args.old_raster
 new_raster_filename = input_args.new_raster
 output_raster_filename = input_args.output_raster
-
 resample_alg = RESAMPLE_ALGS[input_args.resample_alg]
+compression = input_args.compress
 
 old_datasrc = gdal.Open(old_raster_filename)
 new_datasrc = gdal.Open(new_raster_filename)
@@ -97,6 +112,12 @@ new_array[new_array == new_nodata_value] = np.nan
 output_array = new_array - old_array
 output_array[~np.isfinite(output_array)] = new_nodata_value
 
+output_options = [
+    "TILED=YES",
+    "COMPRESS={}".format(compression),
+    "PREDICTOR=3", # appears to give best results on real-life data
+]
+
 output_driver = gdal.GetDriverByName("GTiff")
 output_datasrc = output_driver.Create(
     output_raster_filename,
@@ -104,6 +125,7 @@ output_datasrc = output_driver.Create(
     new_num_rows,
     1,  # number of bands
     new_datatype,
+    options=output_options,
 )
 output_datasrc.SetProjection(new_srs)
 output_datasrc.SetGeoTransform(new_geotransform)
